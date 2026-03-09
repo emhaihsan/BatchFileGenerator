@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Batch File Generator: personalisasi gambar (template + CSV) menjadi berbagai format.
+Batch File Generator: personalize visual templates (image + CSV) into multiple formats.
 """
 
 import argparse
@@ -11,7 +11,7 @@ import cv2
 from PIL import Image
 
 def load_names(csv_path):
-    """Baca nama dari CSV (kolom pertama)."""
+    """Read recipient names from a CSV (first column only)."""
     names = []
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -25,10 +25,10 @@ SUPPORTED_FORMATS = {"png", "jpg", "jpeg", "webp", "pdf"}
 
 def render_personalized_image(image_path, name, font_size=300,
                               position=(50, 50), color=(0, 0, 0)):
-    """Kembalikan array gambar (BGR) yang sudah ditambahkan teks."""
+    """Return a BGR image array with the personalized text rendered."""
     img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     if img is None:
-        raise FileNotFoundError(f"Gagal membuka gambar: {image_path}")
+        raise FileNotFoundError(f"Failed to open image: {image_path}")
 
     font_face = cv2.FONT_HERSHEY_DUPLEX
     font_scale = max(font_size / 30.0, 0.1)
@@ -39,7 +39,7 @@ def render_personalized_image(image_path, name, font_size=300,
     lines = [
         f"{name}",
         " ",
-        "sekeluarga",
+        "and family",
     ]
 
     y_offset = position[1]
@@ -81,22 +81,22 @@ def save_image(img, output_path, fmt):
 
 def main():
     parser = argparse.ArgumentParser(description="Batch File Generator: template + CSV → multi-format output")
-    parser.add_argument('image', help='Path gambar undangan (PNG/JPG/etc.)')
-    parser.add_argument('names_csv', help='CSV berisi daftar nama')
-    parser.add_argument('-o', '--output', default='output', help='Folder output (default: output)')
-    parser.add_argument('--size', type=int, default=300, help='Skala font OpenCV (pixel)')
+    parser.add_argument('image', help='Invitation/certificate template image (PNG/JPG/etc.)')
+    parser.add_argument('names_csv', help='CSV containing recipient names (first column)')
+    parser.add_argument('-o', '--output', default='output', help='Destination folder (default: output)')
+    parser.add_argument('--size', type=int, default=300, help='OpenCV font scale (approximately pixels)')
     parser.add_argument('--pos', nargs=2, type=int, default=[50, 50], metavar=('X', 'Y'),
-                        help='Posisi teks (default: 50 50)')
+                        help='Text center position (default: 50 50)')
     parser.add_argument('--color', nargs=3, type=int, default=[0, 0, 0], metavar=('R', 'G', 'B'),
-                        help='Warna RGB (default: 0 0 0)')
+                        help='Text color in RGB (default: 0 0 0)')
     parser.add_argument('--formats', nargs='+', default=['webp'], metavar='FMT',
-                        help='Format keluaran (pilihan: png jpg webp pdf). Bisa lebih dari satu.')
+                        help='Output formats (choose from: png jpg webp pdf). Accepts multiple values.')
 
     args = parser.parse_args()
 
     invalid = [fmt for fmt in args.formats if fmt.lower() not in SUPPORTED_FORMATS]
     if invalid:
-        raise ValueError(f"Format tidak didukung: {', '.join(invalid)}")
+        raise ValueError(f"Unsupported formats: {', '.join(invalid)}")
 
     names = load_names(args.names_csv)
     out_dir = Path(args.output)
@@ -119,7 +119,7 @@ def main():
             if save_image(personalized, str(out_path), fmt_lower):
                 print(f"✅ {out_path}")
             else:
-                raise RuntimeError(f"Gagal menyimpan {fmt_lower.upper()} untuk {name}")
+                raise RuntimeError(f"Failed to save {fmt_lower.upper()} for {name}")
 
 if __name__ == '__main__':
     main()
